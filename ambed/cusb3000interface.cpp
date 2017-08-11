@@ -155,7 +155,7 @@ bool CUsb3000Interface::SoftResetDevice(void)
     
     DWORD n, b;
     char txpacket[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    char reset_packet[5] = { PKT_HEADER, 0, 1, 0, PKT_RESET };
+    char reset_packet[7] = { PKT_HEADER, 0, 3, 0, PKT_RESET, PKT_PARITYBYTE, 0 ^ 3 ^ 0 ^ PKT_RESET };
     char *p;
     FT_STATUS ftStatus;
     int len, i;
@@ -176,7 +176,7 @@ bool CUsb3000Interface::SoftResetDevice(void)
     }
 	
     p = &reset_packet[0];
-    n = 5;
+    n = 7;
     do {
     	std::cout << "Sending PKT_RESET" << std::endl;
         ftStatus = FT_Write( m_FtdiHandle, p, n, &b);
