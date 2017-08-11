@@ -98,7 +98,7 @@ protected:
     void EncodeSpeechPacket(CBuffer *, int, CVoicePacket *);
     
     // low level
-    bool OpenDevice(void);
+    bool OpenDevice(int);
     virtual bool SoftResetDevice(void)  { return false; }
     bool ReadDeviceVersion(void);
     bool DisableParity(void);

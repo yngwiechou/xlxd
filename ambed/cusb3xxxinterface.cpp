@@ -63,18 +63,26 @@ bool CUsb3xxxInterface::Init(void)
     
     // open USB device
     std::cout << "Opening " << m_szDeviceName << ":" << m_szDeviceSerial << " device" << std::endl;
-    if ( ok &= OpenDevice() )
+    int baudrate = 921600;
+    if (strcmp(m_szDeviceName, "USB-3000") == 0)
+    {
+		baudrate = 460800;
+	}
+	
+    printf ("Setting baudrate = %d for %s\n", baudrate, m_szDeviceName);
+    
+    if ( ok &= OpenDevice(baudrate) )
     {
         // reset
-    	//std::cout << "Reseting " << m_szDeviceName << "device" << std::endl;
+    	std::cout << "Reseting " << m_szDeviceName << " device" << std::endl;
         if ( ok &= SoftResetDevice() )
         {
             // read version
-    		//std::cout << "Reading " << m_szDeviceName << " device version" << std::endl;
+    		std::cout << "Reading " << m_szDeviceName << " device version" << std::endl;
             if ( ok &= ReadDeviceVersion() )
             {
                 // send configuration packet(s)
-    			//std::cout << "Configuring " << m_szDeviceName << " device" << std::endl;
+    			std::cout << "Configuring " << m_szDeviceName << " device" << std::endl;
                 ok &= DisableParity();
                 ok &= ConfigureDevice();
             }
@@ -339,11 +347,11 @@ void CUsb3xxxInterface::EncodeSpeechPacket(CBuffer *buffer, int ch, CVoicePacket
 // low level
 
 
-bool CUsb3xxxInterface::OpenDevice(void)
+bool CUsb3xxxInterface::OpenDevice(int baudrate)
 {
     {
         FT_STATUS ftStatus;
-        int baudrate = 921600;
+        //int baudrate = 921600;
         
         //sets serial VID/PID for a Standard Device NOTE:  This is for legacy purposes only.  This can be ommitted.
         ftStatus = FT_SetVIDPID(m_uiVid, m_uiPid);
@@ -351,7 +359,7 @@ bool CUsb3xxxInterface::OpenDevice(void)
         
         //ftStatus = FT_OpenEx((PVOID)m_szDeviceSerial, FT_OPEN_BY_SERIAL_NUMBER, &m_FtdiHandle);
         ftStatus = FT_OpenEx((PVOID)m_szDeviceName, FT_OPEN_BY_DESCRIPTION, &m_FtdiHandle);
-        baudrate = 921600;
+        //baudrate = 921600;
         if (ftStatus != FT_OK) { FTDI_Error((char *)"FT_OpenEx", ftStatus ); return false; }
         
         CTimePoint::TaskSleepFor(50);
