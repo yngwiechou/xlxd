@@ -52,6 +52,7 @@
 #define PKT_VERSTRING           0x31
 #define PKT_PARITYBYTE          0x2F
 #define PKT_RESET               0x33
+#define PKT_RESETSOFTCFG        0x34
 #define PKT_READY               0x39
 #define PKT_CHANNEL0            0x40
 #define PKT_CHANNEL1            0x41
@@ -65,6 +66,13 @@
 #define PKT_SPCHFMT             0x16
 #define PKT_GAIN                0x4B
 
+
+#define SOFT_CFG0               0x05
+#define SOFT_CFG1               0x00
+#define SOFT_CFG2               0x04
+#define SOFT_MASK0              0xFF
+#define SOFT_MASK1              0xFF
+#define SOFT_MASK2              0xFF
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // class

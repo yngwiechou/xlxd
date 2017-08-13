@@ -131,76 +131,82 @@ CVocodecChannel *CUsb3000Interface::GetChannelWithChannelOut(int iCh)
 bool CUsb3000Interface::SoftResetDevice(void)
 {
     bool ok = false;
-    /*
-    FT_STATUS ftStatus;
+	
+    // USB-3000 does not support reset via UART break signal
+	// Do PKT_RESET instead
+	std::cout << "Trying Packet Reset for USB-3000" << std::endl;
+               
     int len;
-    char rxpacket[100];
-    
-    //if the device is a USB-3003, it supports reset via UART break signal
-    printf("reset via uart break...\n");
-    ftStatus = FT_SetBreakOn( m_FtdiHandle );
-    CTimePoint::TaskSleepFor(10);
-    ftStatus = FT_SetBreakOff( m_FtdiHandle );
-    CTimePoint::TaskSleepFor(10);
+    // Note: ThumbDV disabled Parity with HW config pins, hence no parity is used below
+    char wakeup_packet[10] =
+    {
+        0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    char reset_packet[5] =
+    {
+        PKT_HEADER,
+        0,
+        1,
+        PKT_CONTROL,
+        PKT_RESET
+    };
+    char soft_reset_packet[11] =
+    {
+        PKT_HEADER,
+        0,
+        7,
+        PKT_CONTROL,
+        PKT_RESETSOFTCFG,
+        SOFT_CFG0,
+        SOFT_CFG1,
+        SOFT_CFG2,
+        SOFT_MASK0,
+        SOFT_MASK1,
+        SOFT_MASK2
+    };
 
-    len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) );
-    ok = ((len == 7) && (rxpacket[4] == PKT_READY));
-    if ( !ok )
-    {
-    	std::cout << "USB-3xxx soft reset failed" << std::endl;
-    */
-	
-	//if the device is a USB-3000, do PKT_RESET instead
-	std::cout << "Trying soft reset for USB-3000" << std::endl;
+    char rx_packet[100];
     
-    DWORD n, b;
-    char txpacket[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    char reset_packet[7] = { PKT_HEADER, 0, 3, 0, PKT_RESET, PKT_PARITYBYTE, 0 ^ 3 ^ 0 ^ PKT_RESET };
-    char *p;
-    FT_STATUS ftStatus;
-    int len, i;
-    char rxpacket[100];
-	
-    for (i = 0; i < 35; i++) {
-		p = &txpacket[0];
-		n = 10;
-		do {
-			ftStatus = FT_Write( m_FtdiHandle, p, n, &b);
-			if (FT_OK != ftStatus) {
-			 printf("force_soft_reset:1: Ft_Write error (ftStatus=%d)", ftStatus);
-			 return 1;
-			}
-			n -= b;
-			p += b;
-		} while (n > 0);
-    }
-	
-    p = &reset_packet[0];
-    n = 7;
-    do {
-    	std::cout << "Sending PKT_RESET" << std::endl;
-        ftStatus = FT_Write( m_FtdiHandle, p, n, &b);
-        if (FT_OK != ftStatus) {
-           printf("force_soft_reset:2: Ft_Write error (ftStatus=%d)", ftStatus);
-           return 1;
-        }
-        n -= b;
-        p += b;
-    } while (n > 0);
-	
-    len = FTDI_read_packet( m_FtdiHandle, rxpacket, sizeof(rxpacket) );
-    if (rxpacket[4] == PKT_READY)
+    printf ("[DEBUG] Sending 350 Wakeup packets\n");
+    
+    for (int i = 0; i < 35 ; i++)
     {
-        printf("reset success\n");
-        ok = true;
+		FTDI_write_packet(m_FtdiHandle, wakeup_packet, sizeof(wakeup_packet));
+	}
+    
+    printf ("[DEBUG] Sending PKT_RESET w/o Parity\n");
+	
+	/* Mimic dv3ktuil.c, don't check if PKT_READY is received.
+	if ( FTDI_write_packet(m_FtdiHandle, reset_packet, sizeof(reset_packet)))
+	{
+		CTimePoint::TaskSleepFor(50);
+		len = FTDI_read_packet( m_FtdiHandle, rx_packet, sizeof(rx_packet) );
+        ok = ( rx_packet[4] == PKT_READY );
+	}
+	*/
+	ok = FTDI_write_packet(m_FtdiHandle, reset_packet, sizeof(reset_packet));
+	
+	/*
+	printf ("[DEBUG] Sending PKT_RESETSOFTCFG w/o Parity\n");
+
+	if ( FTDI_write_packet(m_FtdiHandle, soft_reset_packet, sizeof(soft_reset_packet)))
+	{
+		CTimePoint::TaskSleepFor(50);
+		len = FTDI_read_packet( m_FtdiHandle, rx_packet, sizeof(rx_packet) );
+        ok = ( rx_packet[4] == PKT_READY );
+	}
+	*/
+	
+    if (ok)
+    {
+        printf("Reset success\n");
     }
     else
     {
-    	printf("reset failure\n");
+    	printf("Reset failure\n");
     }
-          
-    //}
-    
+	    
     // done
     return ok;
 }

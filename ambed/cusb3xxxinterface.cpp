@@ -67,9 +67,8 @@ bool CUsb3xxxInterface::Init(void)
     if (strcmp(m_szDeviceName, "USB-3000") == 0)
     {
 		baudrate = 460800;
+		printf ("Using baudrate = %d for %s\n", baudrate, m_szDeviceName);
 	}
-	
-    printf ("Setting baudrate = %d for %s\n", baudrate, m_szDeviceName);
     
     if ( ok &= OpenDevice(baudrate) )
     {
@@ -81,9 +80,10 @@ bool CUsb3xxxInterface::Init(void)
     		std::cout << "Reading " << m_szDeviceName << " device version" << std::endl;
             if ( ok &= ReadDeviceVersion() )
             {
-                // send configuration packet(s)
     			std::cout << "Configuring " << m_szDeviceName << " device" << std::endl;
+    			// Disable parity
                 ok &= DisableParity();
+                // send configuration packet(s)
                 ok &= ConfigureDevice();
             }
         }
@@ -357,8 +357,8 @@ bool CUsb3xxxInterface::OpenDevice(int baudrate)
         ftStatus = FT_SetVIDPID(m_uiVid, m_uiPid);
         if (ftStatus != FT_OK) {FTDI_Error((char *)"FT_SetVIDPID", ftStatus ); return false; }
         
-        //ftStatus = FT_OpenEx((PVOID)m_szDeviceSerial, FT_OPEN_BY_SERIAL_NUMBER, &m_FtdiHandle);
-        ftStatus = FT_OpenEx((PVOID)m_szDeviceName, FT_OPEN_BY_DESCRIPTION, &m_FtdiHandle);
+        ftStatus = FT_OpenEx((PVOID)m_szDeviceSerial, FT_OPEN_BY_SERIAL_NUMBER, &m_FtdiHandle);
+        //ftStatus = FT_OpenEx((PVOID)m_szDeviceName, FT_OPEN_BY_DESCRIPTION, &m_FtdiHandle);
         //baudrate = 921600;
         if (ftStatus != FT_OK) { FTDI_Error((char *)"FT_OpenEx", ftStatus ); return false; }
         
@@ -382,6 +382,7 @@ bool CUsb3xxxInterface::OpenDevice(int baudrate)
         
         ftStatus = FT_SetBaudRate(m_FtdiHandle, baudrate );
         if (ftStatus != FT_OK) { FTDI_Error((char *)"FT_SetBaudRate", ftStatus ); return false; }
+        else { printf ("Setting baudrate = %d\n", baudrate); }
         
         ftStatus = FT_SetLatencyTimer(m_FtdiHandle, 4);
         if (ftStatus != FT_OK) { FTDI_Error((char *)"FT_SetLatencyTimer", ftStatus ); return false; }
@@ -558,10 +559,16 @@ bool CUsb3xxxInterface::FTDI_read_bytes(FT_HANDLE ftHandle, char *buffer, int le
     // this relies on FT_SetTimouts() mechanism
     int n;
     bool ok = false;
+    FT_STATUS ftStatus;
     
-    ok = (FT_Read(ftHandle, (LPVOID)buffer, len, (LPDWORD)&n) == FT_OK) && (n == len);
+    //FT_SetTimeouts(ftHandle,500,0);
+    ftStatus = FT_Read(ftHandle, (LPVOID)buffer, len, (LPDWORD)&n);
+    
+    ok = (ftStatus == FT_OK) && (n == len);
     if ( !ok )
     {
+    	printf ("[DEBUG] ftStatus = %d\n", ftStatus);
+    	printf ("[DEBUG] Read %d bytes\n", n);
         //FT_Purge(ftHandle, FT_PURGE_RX);
         std::cout << "FTDI_read_bytes(" << len << ") failed : " << n << std::endl;
     }
@@ -648,6 +655,7 @@ int CUsb3xxxInterface::FTDI_read_packet(FT_HANDLE ftHandle, char *pkt, int maxle
     return plen+4;
 }
 */
+
 bool CUsb3xxxInterface::FTDI_write_packet(FT_HANDLE ft_handle, const char *pkt, int len)
 {
     FT_STATUS ftStatus;
@@ -661,6 +669,10 @@ bool CUsb3xxxInterface::FTDI_write_packet(FT_HANDLE ft_handle, const char *pkt, 
         if ( !ok )
         {
             FTDI_Error((char *)"FT_Write", ftStatus);
+        }
+        else
+        {
+        	printf ("[DEBUG] Wrote %d bytes\n", nwritten );
         }
     }
     return ok;
