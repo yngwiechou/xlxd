@@ -102,10 +102,22 @@ bool CVocodecs::Init(void)
             // another unsed USB-3003 avaliable for a pair ?
             bool found = false;
             int j = i+1;
+            /*
             while ( !found && (j < m_FtdiDeviceDescrs.size()) &&
                     !(m_FtdiDeviceDescrs[j]->IsUsb3003() && !m_FtdiDeviceDescrs[j]->IsUsed()) )
             {
                 j++;
+            }
+            */
+            // Fix a bug in above code, since found won't be set
+            for (j = i+1; j < m_FtdiDeviceDescrs.size(); j++)
+            {
+                if (m_FtdiDeviceDescrs[j]->IsUsb3000() && !m_FtdiDeviceDescrs[j]->IsUsed())
+                {
+                	printf ("Found another USB-3000 (%d) %s\n", j, m_FtdiDeviceDescrs[j]->GetSerialNumber());
+                	found = true;
+                	break;
+                }
             }
             
             // pair ?
