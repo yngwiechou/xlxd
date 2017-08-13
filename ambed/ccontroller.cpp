@@ -135,7 +135,7 @@ void CController::Task(void)
         if ( IsValidOpenstreamPacket(Buffer, &Callsign, &CodecIn, &CodecOut) )
         {
             std::cout << "Stream Open from " << Callsign << std::endl;
-            
+            printf ("[DEBUG] Codec In: %d, Codec Out: %d\n", CodecIn, CodecOut);
             // try create the stream
             Stream = OpenStream(Callsign, Ip, CodecIn, CodecOut);
             

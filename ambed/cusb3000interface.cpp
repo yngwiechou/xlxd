@@ -39,12 +39,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 // constructor
 
-CUsb3000Interface::CUsb3000Interface(uint32 uiVid, uint32 uiPid, const char *szDeviceName, const char *szDeviceSerial)
+CUsb3000Interface::CUsb3000Interface(uint32 uiVid, uint32 uiPid, const char *szDeviceName, const char *szDeviceSerial, int szCodec)
 : CUsb3xxxInterface(uiVid, uiPid, szDeviceName, szDeviceSerial)
 {
-    m_uiChCodecs[0]= CODEC_AMBEPLUS;
-    m_uiChCodecs[1]= CODEC_AMBE2PLUS;
-    m_uiChCodecs[2]= CODEC_NONE;
+    m_uiChCodecs[0]= szCodec;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +53,8 @@ bool CUsb3000Interface::Init(uint8 uiOddCodec)
     bool ok = true;
     
     // init the odd channel
-    m_uiChCodecs[2] = uiOddCodec;
+    //m_uiChCodecs[2] = uiOddCodec;
+    m_uiChCodecs[0] = uiOddCodec;
     
     // base class
     ok &= CUsb3xxxInterface::Init();
