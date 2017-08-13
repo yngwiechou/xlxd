@@ -670,10 +670,6 @@ bool CUsb3xxxInterface::FTDI_write_packet(FT_HANDLE ft_handle, const char *pkt, 
         {
             FTDI_Error((char *)"FT_Write", ftStatus);
         }
-        else
-        {
-        	printf ("[DEBUG] Wrote %d bytes\n", nwritten );
-        }
     }
     return ok;
 }

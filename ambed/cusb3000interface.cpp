@@ -137,35 +137,23 @@ bool CUsb3000Interface::SoftResetDevice(void)
 	std::cout << "Trying Packet Reset for USB-3000" << std::endl;
                
     int len;
-    // Note: ThumbDV disabled Parity with HW config pins, hence no parity is used below
+	
     char wakeup_packet[10] =
     {
         0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00
     };
-    char reset_packet[5] =
+    // Must send with parity
+    char reset_packet[7] =
     {
         PKT_HEADER,
         0,
-        1,
+        3,
         PKT_CONTROL,
-        PKT_RESET
+        PKT_RESET,
+        PKT_PARITYBYTE,
+    	3 ^ PKT_CONTROL ^ PKT_RESET ^ PKT_PARITYBYTE
     };
-    char soft_reset_packet[11] =
-    {
-        PKT_HEADER,
-        0,
-        7,
-        PKT_CONTROL,
-        PKT_RESETSOFTCFG,
-        SOFT_CFG0,
-        SOFT_CFG1,
-        SOFT_CFG2,
-        SOFT_MASK0,
-        SOFT_MASK1,
-        SOFT_MASK2
-    };
-
     char rx_packet[100];
     
     printf ("[DEBUG] Sending 350 Wakeup packets\n");
@@ -175,36 +163,21 @@ bool CUsb3000Interface::SoftResetDevice(void)
 		FTDI_write_packet(m_FtdiHandle, wakeup_packet, sizeof(wakeup_packet));
 	}
     
-    printf ("[DEBUG] Sending PKT_RESET w/o Parity\n");
+    printf ("[DEBUG] Sending PKT_RESET (with Parity)\n");
 	
-	/* Mimic dv3ktuil.c, don't check if PKT_READY is received.
 	if ( FTDI_write_packet(m_FtdiHandle, reset_packet, sizeof(reset_packet)))
 	{
-		CTimePoint::TaskSleepFor(50);
 		len = FTDI_read_packet( m_FtdiHandle, rx_packet, sizeof(rx_packet) );
         ok = ( rx_packet[4] == PKT_READY );
 	}
-	*/
-	ok = FTDI_write_packet(m_FtdiHandle, reset_packet, sizeof(reset_packet));
-	
-	/*
-	printf ("[DEBUG] Sending PKT_RESETSOFTCFG w/o Parity\n");
-
-	if ( FTDI_write_packet(m_FtdiHandle, soft_reset_packet, sizeof(soft_reset_packet)))
-	{
-		CTimePoint::TaskSleepFor(50);
-		len = FTDI_read_packet( m_FtdiHandle, rx_packet, sizeof(rx_packet) );
-        ok = ( rx_packet[4] == PKT_READY );
-	}
-	*/
-	
+		
     if (ok)
     {
-        printf("Reset success\n");
+        printf("Soft Reset success\n");
     }
     else
     {
-    	printf("Reset failure\n");
+    	printf("Soft Reset failure\n");
     }
 	    
     // done
@@ -229,7 +202,7 @@ bool CUsb3000Interface::ConfigureDevice(void)
                 //ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, -12, 0);   // DSTAR->DMR ok
                 //ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, 0, +10);   // DMR->DSTAR ok
                 //ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, -12, +10);   // not ok!
-                ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, 0, 0);
+                ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, 0, 0); 
                 break;
             case CODEC_NONE:
             default:
