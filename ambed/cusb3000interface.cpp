@@ -54,6 +54,7 @@ bool CUsb3000Interface::Init(uint8 uiOddCodec)
     
     // init the odd channel
     //m_uiChCodecs[2] = uiOddCodec;
+    // init ch0
     m_uiChCodecs[0] = uiOddCodec;
     
     // base class
@@ -195,9 +196,11 @@ bool CUsb3000Interface::ConfigureDevice(void)
         switch ( m_uiChCodecs[i] )
         {
             case CODEC_AMBEPLUS:
+            	std::cout << "Setting Channel: " << i << " Codec: " << CODEC_AMBEPLUS << std::endl;
                 ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambeplus, 0, 0);
                 break;
             case CODEC_AMBE2PLUS:
+            	std::cout << "Configure Device Channel (" << i << ") with Codec: " << CODEC_AMBE2PLUS << std::endl;
                 //ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, -12, 0);   // DSTAR->DMR ok
                 //ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, 0, +10);   // DMR->DSTAR ok
                 //ok &= ConfigureChannel(PKT_CHANNEL0+i, pkt_ratep_ambe2plus, -12, +10);   // not ok!

@@ -64,7 +64,8 @@ bool CUsb3xxxInterface::Init(void)
     // open USB device
     std::cout << "Opening " << m_szDeviceName << ":" << m_szDeviceSerial << " device" << std::endl;
     int baudrate = 921600;
-    if (strcmp(m_szDeviceName, "USB-3000") == 0)
+    //if (strcmp(m_szDeviceName, "USB-3000") == 0)
+    if (strncmp(m_szDeviceName, "USB-3000", 8) == 0)
     {
 		baudrate = 460800;
 		printf ("Using baudrate = %d for %s\n", baudrate, m_szDeviceName);

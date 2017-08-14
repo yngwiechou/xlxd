@@ -326,11 +326,11 @@ int CVocodecs::InitUsb3003(const CFtdiDeviceDescr &descr)
         CVocodecChannel *Channel;
         // create all channels
         {
-            // ch1
+            // ch1 in=AMBE+ out=AMBE2+
             Channel = new CVocodecChannel(Usb3003, 0, Usb3003, 1, CODECGAIN_AMBEPLUS);
             m_Channels.push_back(Channel);
             Usb3003->AddChannel(Channel);
-            // ch2
+            // ch2 in=AMBE2+ out=AMBE+
             Channel = new CVocodecChannel(Usb3003, 1, Usb3003, 0, CODECGAIN_AMBE2PLUS);
             m_Channels.push_back(Channel);
             Usb3003->AddChannel(Channel);
@@ -353,37 +353,37 @@ int CVocodecs::InitUsb3003Pair(const CFtdiDeviceDescr &descr1, const CFtdiDevice
     int nStreams = 0;
     
     // create the interfaces for the two 3003 chips
-    CUsb3003Interface *Usb3003A = new CUsb3003Interface(descr1.GetVid(), descr1.GetPid(), "USB-3003", descr1.GetSerialNumber());
-    CUsb3003Interface *Usb3003B = new CUsb3003Interface(descr2.GetVid(), descr2.GetPid(), "USB-3003", descr2.GetSerialNumber());
+    CUsb3003Interface *Usb3003A = new CUsb3003Interface(descr1.GetVid(), descr1.GetPid(), "USB-3003_A", descr1.GetSerialNumber());
+    CUsb3003Interface *Usb3003B = new CUsb3003Interface(descr2.GetVid(), descr2.GetPid(), "USB-3003_B", descr2.GetSerialNumber());
     
-    // init the interfaces
+    // init the interfaces (ch2)
     if ( Usb3003A->Init(CODEC_AMBEPLUS) && Usb3003B->Init(CODEC_AMBE2PLUS) )
     {
         CVocodecChannel *Channel;
         // create all channels
         {
-            // ch1
+            // ch1 in=A:AMBE+ out=A:AMBE2+
             Channel = new CVocodecChannel(Usb3003A, 0, Usb3003A, 1, CODECGAIN_AMBEPLUS);
             m_Channels.push_back(Channel);
             Usb3003A->AddChannel(Channel);
-            // ch2
+            // ch2 in=A:AMBE2+ out=A:AMBE+
             Channel = new CVocodecChannel(Usb3003A, 1, Usb3003A, 0, CODECGAIN_AMBE2PLUS);
             m_Channels.push_back(Channel);
             Usb3003A->AddChannel(Channel);
-            // ch3
+            // ch3 in=B:AMBE+ out=B:AMBE2+
             Channel = new CVocodecChannel(Usb3003B, 0, Usb3003B, 1, CODECGAIN_AMBEPLUS);
             m_Channels.push_back(Channel);
             Usb3003B->AddChannel(Channel);
-            // ch4
+            // ch4 in=B:AMBE2+ out=B:AMBE+
             Channel = new CVocodecChannel(Usb3003B, 1, Usb3003B, 0, CODECGAIN_AMBE2PLUS);
             m_Channels.push_back(Channel);
             Usb3003B->AddChannel(Channel);
-            // ch5
+            // ch5 in=A:AMBE+ out=AMBE2+
             Channel = new CVocodecChannel(Usb3003A, 2, Usb3003B, 2, CODECGAIN_AMBEPLUS);
             m_Channels.push_back(Channel);
             Usb3003A->AddChannel(Channel);
             Usb3003B->AddChannel(Channel);
-            // ch6
+            // ch6 in=AMBE2+ out=AMBE+
             Channel = new CVocodecChannel(Usb3003B, 2, Usb3003A, 2, CODECGAIN_AMBE2PLUS);
             m_Channels.push_back(Channel);
             Usb3003A->AddChannel(Channel);
@@ -409,24 +409,29 @@ int CVocodecs::InitUsb3000Pair(const CFtdiDeviceDescr &descr1, const CFtdiDevice
     int nStreams = 0;
     
     // create the interfaces for the two 3000 chips
-    CUsb3000Interface *Usb3000A = new CUsb3000Interface(descr1.GetVid(), descr1.GetPid(), "USB-3000", descr1.GetSerialNumber(), CODEC_AMBEPLUS);
-    printf ("[DEBUG] Channel CODEC %d\n", Usb3000A->GetChannelCodec(0));
-    CUsb3000Interface *Usb3000B = new CUsb3000Interface(descr2.GetVid(), descr2.GetPid(), "USB-3000", descr2.GetSerialNumber(), CODEC_AMBE2PLUS);
-    printf ("[DEBUG] Channel CODEC %d\n", Usb3000B->GetChannelCodec(0));
+    CUsb3000Interface *Usb3000A = new CUsb3000Interface(descr1.GetVid(), descr1.GetPid(), "USB-3000_A", descr1.GetSerialNumber(), CODEC_AMBEPLUS);
+    std::cout << "Codec interfaces " << "USB-3000_A" << " Serial: " <<  descr1.GetSerialNumber() << " Codec: " << CODEC_AMBEPLUS << std::endl;
+	//printf ("[DEBUG] Channel CODEC %d\n", Usb3000A->GetChannelCodec(0));
+	
+    CUsb3000Interface *Usb3000B = new CUsb3000Interface(descr2.GetVid(), descr2.GetPid(), "USB-3000_B", descr2.GetSerialNumber(), CODEC_AMBE2PLUS);
+    std::cout << "Codec interfaces " << "USB-3000_B" << " Serial: " <<  descr2.GetSerialNumber() << " Codec: " << CODEC_AMBE2PLUS << std::endl;
+    //printf ("[DEBUG] Channel CODEC %d\n", Usb3000B->GetChannelCodec(0));
     
-    // init the interfaces
+    // init the interfaces (ch0)
     if ( Usb3000A->Init(CODEC_AMBEPLUS) && Usb3000B->Init(CODEC_AMBE2PLUS) )
     {
         CVocodecChannel *Channel;
         // create all channels
         {
-            // ch1
+            // ch1 in=A:AMBE+ out=B:AMBE2+
             Channel = new CVocodecChannel(Usb3000A, 0, Usb3000B, 0, CODECGAIN_AMBEPLUS);
             m_Channels.push_back(Channel);
             Usb3000A->AddChannel(Channel);
-            // ch2
+            Usb3000B->AddChannel(Channel);
+            // ch2 in=B:AMBE2+ out=A:AMBE+
             Channel = new CVocodecChannel(Usb3000B, 0, Usb3000A, 0, CODECGAIN_AMBE2PLUS);
             m_Channels.push_back(Channel);
+            Usb3000A->AddChannel(Channel);
             Usb3000B->AddChannel(Channel);
             // done
             nStreams = 2;
